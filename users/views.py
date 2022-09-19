@@ -20,7 +20,6 @@ class UserViewSet(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAdminUser]
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    lookup_field = None
     
     
 
@@ -54,7 +53,7 @@ class ReportViewSet(generics.ListAPIView):
     Отчёт по мероприятию
     """
     permission_classes = [IsAdminUser]
-    queryset = Evaluation_Criterion.objects.all().only("project", "evaluation_criterion", "grade")
+    queryset = Grades.objects.all().only("project", "evaluation_criterion", "grade")
     serializer_class = Evaluation_CriterionSerializer
     
 class VoteViewSet(generics.RetrieveUpdateAPIView):
@@ -64,6 +63,7 @@ class VoteViewSet(generics.RetrieveUpdateAPIView):
     permission_classes = [IsAuthenticated]
     queryset = Grades.objects.all()
     serializer_class = VoteSerializer
+
 
 class RetrieveAPIView(mixins.RetrieveModelMixin,
                       generics.GenericAPIView):
@@ -89,6 +89,7 @@ class EventLogViewSet(generics.ListAPIView):
     """
     permission_classes = [IsAuthenticated]
     queryset = Grades.objects.all().select_related("project")
+    serializer_class = EventsSerializer
     
 
 class EventHistoryViewSet(generics.ListAPIView):
