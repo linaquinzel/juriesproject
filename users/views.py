@@ -60,24 +60,25 @@ class VoteViewSet(generics.RetrieveUpdateAPIView):
     """
     Голосование надо доделать флажок разрешения
     """
+    def patch(self, request, *args, **kwargs):
+        if Project.objects.filter(self.request.path):
+            return self.partial_update(request, *args, **kwargs)
+    
+    def put(self, request, *args, **kwargs):
+        if Project.objects.filter(self.request.path):
+            return self.partial_update(request, *args, **kwargs)
+    
     permission_classes = [IsAuthenticated]
     queryset = Grades.objects.all()
     serializer_class = VoteSerializer
+    
 
-
-class RetrieveAPIView(mixins.RetrieveModelMixin,
-                      generics.GenericAPIView):
-    """
-    Concrete view for retrieving a model instance.
-    """
-    def get(self, request, *args, **kwargs):
-        data = self.request.path
-        return self.retrieve(request, *args, **kwargs)
 
 class Revote(generics.DestroyAPIView):
     """
     Назначить переголосование надо доделать запрос ссылки
     """
+    
     permission_classes = [IsAdminUser]
     queryset = Grades.objects.all().only("grade")
     serializer_class = RevoteSerializer

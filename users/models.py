@@ -107,6 +107,7 @@ class Grades(models.Model):
         "User",
         verbose_name="Оценивший жюри",
         on_delete=models.PROTECT,
+        auto_created=True
     )
         
     grade = models.IntegerField(
