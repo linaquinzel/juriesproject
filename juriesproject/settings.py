@@ -68,7 +68,7 @@ TEMPLATES = [
         },
     },
 ]
-
+LOGIN_REDIRECT_URL = '/'
 WSGI_APPLICATION = 'juriesproject.wsgi.application'
 
 
@@ -125,3 +125,19 @@ STATIC_URL = '/static/'
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+REST_FRAMEWORK = {
+   'DEFAULT_PERMISSION_CLASSES': (
+       'rest_framework.permissions.IsAdminUser', 
+       'rest_framework.permissions.IsAuthenticated',
+    ),
+}
+TEMPLATE_CONTEXT_PROCESSORS = (
+    'django.contrib.auth.context_processors.auth',
+    'django.core.context_processors.debug',
+    'django.core.context_processors.i18n',
+    'django.core.context_processors.media',
+    'django.core.context_processors.static',
+    'django.core.context_processors.tz',
+    'django.contrib.messages.context_processors.messages',
+    'django.core.context_processors.request',
+)

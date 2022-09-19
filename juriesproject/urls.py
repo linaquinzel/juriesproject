@@ -15,11 +15,24 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from users.views import *
+from users.views import (
+    UserViewSet, Evaluation_CriterionViewSet,
+    ReportViewSet, EventsViewSet, VoteViewSet,
+    EventLogViewSet, EventHistoryViewSet
+)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('auth/', include('django.contrib.auth.urls')),
     path('user/', UserViewSet.as_view()),
-    path('user/<int:pk>/', UserViewSet.as_view())
+    path('user/<int:pk>/', UserViewSet.as_view()),
+    path('grades/', Evaluation_CriterionViewSet.as_view()),
+    path('grades/<int:pk>/', Evaluation_CriterionViewSet.as_view()),
+    path('report/', ReportViewSet.as_view()),
+    path('report/<int:pk>/', ReportViewSet.as_view()),
+    path('events/', EventsViewSet.as_view()),
+    path('events/<int:pk>/', EventsViewSet.as_view()),
+    path('vote/', VoteViewSet.as_view()),
+    path('vote/<int:pk>/', VoteViewSet.as_view()),
+    path('event_log/', EventLogViewSet.as_view()),
 ]

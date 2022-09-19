@@ -47,6 +47,12 @@ class Events(models.Model):
         verbose_name="Дата мероприятия",
         editable=True
     )
+    start_event = models.BooleanField(
+        verbose_name="Начало мероприятия",
+        editable=True,
+        default=False,
+        auto_created=True
+    )
 
 class Project(models.Model):
     event = models.ForeignKey(
@@ -64,20 +70,43 @@ class Project(models.Model):
         verbose_name="Имя докладчика",
         editable=True
     )
-    
-    
-class Grades(models.Model):
-        
-    author = models.ForeignKey(
-        "User",
-        verbose_name="Член жюри",
-        on_delete=models.PROTECT
+    start_project = models.BooleanField(
+        verbose_name="Начало голосования",
+        editable=True,
+        default=False,
+        auto_created=True
     )
-        
+    
+class Evaluation_Criterion(models.Model):
+    
+    evaluation_criterion = models.TextField(
+        verbose_name="Критерий оценки",
+        max_length=300,
+        editable=True
+    )
+    explanation = models.TextField(
+        verbose_name="Пояснение к критерию",
+        editable=True
+    )
+
+class Grades(models.Model):
+    
     project = models.ForeignKey(
         "Project",
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         verbose_name="Оценённый проект"
+    )
+    
+    evaluation_criterion = models.ForeignKey(
+        "Evaluation_Criterion",
+        verbose_name="Критерий оценки",
+        on_delete=models.PROTECT,
+        
+    )
+    author = models.ForeignKey(
+        "User",
+        verbose_name="Оценивший жюри",
+        on_delete=models.PROTECT,
     )
         
     grade = models.IntegerField(
@@ -85,9 +114,3 @@ class Grades(models.Model):
         editable=True,
         choices=[(1, "1"), (2, "2"), (3, "3"), (4, "4"), (5, "5")]
     )
-    evaluation_criterion = models.TextField(
-        verbose_name="Критерий оценки",
-        max_length=300,
-        editable=True
-    )
-
