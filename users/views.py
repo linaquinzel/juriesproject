@@ -2,7 +2,7 @@ from django.http import HttpRequest
 from itertools import chain
 from django.db.models import Q
 from django.shortcuts import render
-from rest_framework import generics, viewsets
+from rest_framework import generics, viewsets, mixins
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from .models import Evaluation_Criterion, Events, Grades, Project, User
 from .serializer import (
@@ -13,8 +13,6 @@ from .serializer import (
 from django.db.models.query import QuerySet
 
 
-
-global data
 class UserViewSet(generics.RetrieveUpdateDestroyAPIView):
     """
     Список судей
@@ -22,6 +20,7 @@ class UserViewSet(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAdminUser]
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    lookup_field = None
     
     
 
@@ -62,15 +61,18 @@ class VoteViewSet(generics.RetrieveUpdateAPIView):
     """
     Голосование надо доделать флажок разрешения
     """
-    def put(self, request, *args, **kwargs):
-        data = request.path()
-        return self.update(request, *args, **kwargs)
-    
-    query = Project.objects.get(data)
-    if query:
-        permission_classes = [IsAuthenticated]
-        queryset = Grades.objects.all()
-        serializer_class = VoteSerializer
+    permission_classes = [IsAuthenticated]
+    queryset = Grades.objects.all()
+    serializer_class = VoteSerializer
+
+class RetrieveAPIView(mixins.RetrieveModelMixin,
+                      generics.GenericAPIView):
+    """
+    Concrete view for retrieving a model instance.
+    """
+    def get(self, request, *args, **kwargs):
+        data = self.request.path
+        return self.retrieve(request, *args, **kwargs)
 
 class Revote(generics.DestroyAPIView):
     """

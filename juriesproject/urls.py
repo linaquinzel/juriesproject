@@ -24,7 +24,7 @@ from users.views import (
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('auth/', include('django.contrib.auth.urls')),
-    path('user/', UserViewSet.as_view()),
+    path('users/', UserViewSet.as_view()),
     path('user/<int:pk>/', UserViewSet.as_view()),
     path('grades/', Evaluation_CriterionViewSet.as_view()),
     path('grades/<int:pk>/', Evaluation_CriterionViewSet.as_view()),

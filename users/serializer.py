@@ -33,7 +33,6 @@ class VoteSerializer(serializers.ModelSerializer):
     class Meta():
         model = Grades
         fields = "__all__"
-
 class RevoteSerializer(serializers.ModelSerializer):
     class Meta():
         model = Grades
