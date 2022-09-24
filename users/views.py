@@ -1,19 +1,16 @@
-from django.http import HttpRequest
-from itertools import chain
-from django.db.models import Q
-from django.shortcuts import render
-from rest_framework import generics, viewsets, mixins
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from django.utils import timezone
+from django.db.models import Prefetch
+from rest_framework import generics, mixins, viewsets
+from rest_framework.permissions import IsAdminUser, IsAuthenticated
+from rest_framework.response import Response
 from .models import Evaluation_Criterion, Events, Grades, Project, User
 from .serializer import (
-    Evaluation_CriterionSerializer, EventsSerializer, 
-    ProjectSerializer, UserSerializer, VoteSerializer,
-    RevoteSerializer, AddEventSerializer
+    AddEventSerializer, Evaluation_CriterionSerializer,
+    EventsSerializer, ProjectSerializer, RevoteSerializer,
+    UserSerializer, VoteSerializer, EventHistorySerializer
 )
-from django.db.models.query import QuerySet
 
-
-class UserViewSet(generics.RetrieveUpdateDestroyAPIView):
+class UserViewSet(viewsets.ModelViewSet):
     """
     Список судей
     """
@@ -23,7 +20,7 @@ class UserViewSet(generics.RetrieveUpdateDestroyAPIView):
     
     
 
-class EventsViewSet(generics.RetrieveUpdateDestroyAPIView):
+class EventsViewSet(viewsets.ModelViewSet):
     """
     Список мероприятий
     """
@@ -32,7 +29,7 @@ class EventsViewSet(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = EventsSerializer
         
 
-class Evaluation_CriterionViewSet(generics.RetrieveUpdateDestroyAPIView):
+class Evaluation_CriterionViewSet(viewsets.ModelViewSet):
     """
     Список критериев и оценок
     """
@@ -40,7 +37,7 @@ class Evaluation_CriterionViewSet(generics.RetrieveUpdateDestroyAPIView):
     queryset = Evaluation_Criterion.objects.all()
     serializer_class = Evaluation_CriterionSerializer
 
-class ProjectViewSet(generics.RetrieveUpdateDestroyAPIView):
+class ProjectViewSet(viewsets.ModelViewSet):
     """
     Список проектов
     """
@@ -48,7 +45,7 @@ class ProjectViewSet(generics.RetrieveUpdateDestroyAPIView):
     queryset = Project.objects.all()
     serializer_class = ProjectSerializer
     
-class ReportViewSet(generics.ListAPIView):
+class ReportViewSet(viewsets.ModelViewSet):
     """
     Отчёт по мероприятию
     """
@@ -56,49 +53,67 @@ class ReportViewSet(generics.ListAPIView):
     queryset = Grades.objects.all().only("project", "evaluation_criterion", "grade")
     serializer_class = Evaluation_CriterionSerializer
     
-class VoteViewSet(generics.RetrieveUpdateAPIView):
+class VoteViewSet(generics.CreateAPIView, generics.RetrieveUpdateAPIView):
     """
-    Голосование надо доделать флажок разрешения
+    Голосование
     """
-    def patch(self, request, *args, **kwargs):
-        if Project.objects.filter(self.request.path):
-            return self.partial_update(request, *args, **kwargs)
-    
-    def put(self, request, *args, **kwargs):
-        if Project.objects.filter(self.request.path):
-            return self.partial_update(request, *args, **kwargs)
-    
     permission_classes = [IsAuthenticated]
-    queryset = Grades.objects.all()
     serializer_class = VoteSerializer
+
+    def get_queryset(self):
+        task_id = self.kwargs.get('pk')
+        fltr = Project.objects.get(pk=task_id)
+        flag = fltr.start_project
+        if flag:
+            queryset = Grades.objects.filter(project=task_id)
+            return queryset
+
+    def perform_create(self, serializer):
+        task_id = self.kwargs.get('pk')
+        fltr = Project.objects.get(pk=task_id)
+        flag = fltr.start_project
+        if flag:
+            serializer.save()
     
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+    def get(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
 
 
 class Revote(generics.DestroyAPIView):
     """
-    Назначить переголосование надо доделать запрос ссылки
+    Назначить переголосование
     """
-    
     permission_classes = [IsAdminUser]
     queryset = Grades.objects.all().only("grade")
     serializer_class = RevoteSerializer
     
 
-class EventLogViewSet(generics.ListAPIView):
+class EventLogViewSet(viewsets.ModelViewSet):
     """
-    Текущие мероприятия доделать фильтр по датам
+    Текущие мероприятия
     """
+    date = str(timezone.now())
+    dt = date.split(" ")
     permission_classes = [IsAuthenticated]
-    queryset = Grades.objects.all().select_related("project")
     serializer_class = EventsSerializer
+    queryset = Events.objects.filter(date_of_event__startswith=(dt[0]))
     
 
-class EventHistoryViewSet(generics.ListAPIView):
+class EventHistoryViewSet(viewsets.ModelViewSet):
     """
-    История мероприятий доделать фильтр по датам
+    История мероприятий
     """
+    date = str(timezone.now())
+    dt = date.split(" ")
     permission_classes = [IsAuthenticated]
-    queryset = Grades.objects.all().select_related("project")
+    serializer_class = EventHistorySerializer
+    queryset = Grades.objects.filter(event__date_of_event__lte=dt[0]).select_related("project").all()
 
 class AddEventViewSet(generics.CreateAPIView):
     """

@@ -115,3 +115,8 @@ class Grades(models.Model):
         editable=True,
         choices=[(1, "1"), (2, "2"), (3, "3"), (4, "4"), (5, "5")]
     )
+    event = models.ForeignKey(
+        to="Events",
+        on_delete=models.CASCADE,
+        verbose_name="Мероприятие, в котором оценённый проект"
+    )
