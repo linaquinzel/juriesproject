@@ -1,3 +1,4 @@
+from multiprocessing import Event
 from rest_framework import serializers
 from .models import User, Events, Project, Evaluation_Criterion, Grades
 from rest_framework.response import Response
@@ -11,13 +12,13 @@ class UserSerializer(serializers.ModelSerializer):
 class EventsSerializer(serializers.ModelSerializer):
     class Meta():
         model = Events
-        fields = "__all__"
+        fields = ["name_of_event", "date_of_event", "start_event"]
 
 
 class ProjectSerializer(serializers.ModelSerializer):
     class Meta():
         model = Project
-        fields = "__all__"
+        fields = ["event", "name_of_project", "speaker_name"]
 
 
 class Evaluation_CriterionSerializer(serializers.ModelSerializer):
@@ -68,11 +69,25 @@ class EventLogSerializer(serializers.ModelSerializer):
         fields = ["grade", "author", "evaluation_criterion", "project"]
 
 class EventHistorySerializer(serializers.ModelSerializer):
+    project = serializers.PrimaryKeyRelatedField(queryset=Project.objects.all())
+    author = serializers.PrimaryKeyRelatedField(queryset=User.objects.all()) 
     class Meta():
+        
         model = Grades
-        fields = "__all__"
+        fields = ["grade", "event", "author", "project"]
 
 class AddEventSerializer(serializers.ModelSerializer):
     class Meta():
         model = Events
         fields = ["name_of_event", "date_of_event"]
+
+class JuriesforEvents(serializers.ModelSerializer):
+    juries = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+    first_name = serializers.ReadOnlyField(source='juries.first_name')
+    last_name = serializers.ReadOnlyField(source='juries.last_name')
+    patronymic = serializers.ReadOnlyField(source='juries.patronymic')
+    job_title = serializers.ReadOnlyField(source='juries.job_title')
+    class Meta():
+        
+        model = Events
+        fields = "__all__"

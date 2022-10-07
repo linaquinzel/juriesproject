@@ -7,7 +7,8 @@ from .models import Evaluation_Criterion, Events, Grades, Project, User
 from .serializer import (
     AddEventSerializer, Evaluation_CriterionSerializer,
     EventsSerializer, ProjectSerializer, RevoteSerializer,
-    UserSerializer, VoteSerializer, EventHistorySerializer
+    UserSerializer, VoteSerializer, EventHistorySerializer,
+    JuriesforEvents
 )
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -37,13 +38,16 @@ class Evaluation_CriterionViewSet(viewsets.ModelViewSet):
     queryset = Evaluation_Criterion.objects.all()
     serializer_class = Evaluation_CriterionSerializer
 
-class ProjectViewSet(viewsets.ModelViewSet):
+class ProjectViewSet(generics.ListAPIView):
     """
     Список проектов
     """
     permission_classes = [IsAdminUser]
-    queryset = Project.objects.all()
     serializer_class = ProjectSerializer
+    def get_queryset(self):
+        event_id = self.kwargs.get('pk')
+        queryset = Project.objects.filter(event=event_id)
+        return queryset
     
 class ReportViewSet(viewsets.ModelViewSet):
     """
@@ -113,7 +117,7 @@ class EventHistoryViewSet(viewsets.ModelViewSet):
     dt = date.split(" ")
     permission_classes = [IsAuthenticated]
     serializer_class = EventHistorySerializer
-    queryset = Grades.objects.filter(event__date_of_event__lte=dt[0]).select_related("project").all()
+    queryset = Grades.objects.filter(event__date_of_event__lte=dt[0]).select_related("project").select_related("event").all()
 
 class AddEventViewSet(generics.CreateAPIView):
     """
@@ -131,6 +135,12 @@ class AddUser(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
-
+class JuriesforEventViewSet(generics.RetrieveUpdateAPIView):
+    """
+    Список судей в мероприятии
+    """
+    permission_classes = [IsAdminUser]
+    queryset = Events.objects.select_related("juries").all()
+    serializer_class = JuriesforEvents
     
 

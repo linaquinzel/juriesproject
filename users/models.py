@@ -1,3 +1,4 @@
+from tabnanny import verbose
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
@@ -52,6 +53,11 @@ class Events(models.Model):
         editable=True,
         default=False,
         auto_created=True
+    )
+    juries = models.ForeignKey(
+        "User",
+        on_delete=models.PROTECT,
+        verbose_name="Судья"
     )
 
 class Project(models.Model):
